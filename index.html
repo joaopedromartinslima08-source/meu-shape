@@ -128,7 +128,15 @@ function emptyShape(){return normalizeShape({})}
 window.shapeCore={normalizeShape,changesBetween,applyChanges,emptyShape,clone};
 try{db=normalizeShape(db)}catch(e){alert('Há dados antigos que precisam de conferência. Exporte um backup antes de editar. '+e.message)}
 const oldHome=home,oldTools=toolsPage,oldMeal=meal,oldAdd=add,oldForm=foodform,oldProgress=progressPage,oldSettings=settings;
-home=function(){return oldHome().replace('<div class="datebar">','<div class="notice" id="sync-badge" role="status" aria-live="polite">Salvo neste aparelho · entre em Configurações para sincronizar.</div><div class="datebar" style="margin-top:14px">').replace('<div class="sectiontitle">Refeições</div>','<button class="secondary wide" data-action="recipes" style="margin-bottom:12px">🥣 Receitas e refeições salvas</button><div class="sectiontitle">Refeições</div>')};
+home=function(){
+ let html=oldHome(),buttons=[];
+ for(const action of ['photo','tools']){
+  const pattern=new RegExp('<button[^>]*data-action="'+action+'"[^>]*>[\\s\\S]*?</button>');
+  html=html.replace(pattern,button=>{buttons.push(button);return ''});
+ }
+ const footer='<div class="sectiontitle">Mais opções</div>'+buttons.join('')+'<button class="secondary wide" data-action="recipes" style="margin-bottom:12px">🥣 Receitas e refeições salvas</button><div class="notice" id="sync-badge" role="status" aria-live="polite" style="margin-top:16px">Salvo neste aparelho · entre em Configurações para sincronizar.</div>';
+ return html.replace('<div class="footerhint">',footer+'<div class="footerhint">');
+};
 toolsPage=function(){return oldTools()+`<div class="card"><h2>Receitas e refeições salvas</h2><p class="hint">Monte um preparo pelos ingredientes ou salve uma refeição frequente.</p><button class="primary" data-action="recipes">Abrir minhas receitas</button></div>`};
 meal=function(){return oldMeal()+`<button class="secondary wide" style="margin-top:12px" data-action="recipes">Adicionar receita salva</button><button class="secondary wide" style="margin-top:12px" data-action="savemealrecipe">Salvar esta refeição como receita</button>`};
 settings=function(){return oldSettings().replace('Verificando conexão com Firebase…','Salvo neste aparelho. Aguardando conexão com a nuvem…').replace('A importação substitui os registros atuais. Exporte antes.','A importação substitui os dados deste aparelho. Quando conectado, essas alterações também serão sincronizadas. Uma cópia anterior será guardada neste navegador.').replace('Os dados só serão enviados após sua autorização.','Use a versão 3.4 em todos os aparelhos para manter as proteções da nova sincronização.').replace('<h2>Seus dados</h2>','<h2>Seus dados</h2><button class="secondary wide" data-action="recoverbackup">Baixar cópia anterior à última importação</button>')};
